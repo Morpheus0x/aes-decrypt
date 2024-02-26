@@ -30,15 +30,23 @@ func main() {
 	// Get the key value from the INI file
 	key := []byte(cfg.Section("").Key("key").String())
 
-	// nonce, _ := hex.DecodeString("bb8ef84243d2ee95a41c6c57")
-	nonce := []byte{}
-
 	// Read ciphertext from the input file
 	ciphertext, err := ioutil.ReadFile(inputFilePath)
 	if err != nil {
 		fmt.Println("Error reading input file:", err)
 		return
 	}
+
+	// Extract nonce from the ciphertext
+	nonceSize := 12
+	if len(ciphertext) < nonceSize {
+		fmt.Println("Ciphertext too short")
+		return
+	}
+	// nonce := ciphertext[len(ciphertext)-nonceSize:]
+	// ciphertext = ciphertext[:len(ciphertext)-nonceSize]
+	nonce := ciphertext[:nonceSize]
+	ciphertext = ciphertext[nonceSize:]
 
 	block, err := aes.NewCipher(key)
 	if err != nil {
@@ -52,7 +60,6 @@ func main() {
 		return
 	}
 
-	// Nonce is not needed here as it's assumed to be part of the ciphertext
 	plaintext, err := aesgcm.Open(nil, nonce, ciphertext, nil)
 	if err != nil {
 		fmt.Println("Error decrypting ciphertext:", err)
