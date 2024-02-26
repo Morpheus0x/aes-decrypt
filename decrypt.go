@@ -3,23 +3,35 @@ package main
 import (
 	"crypto/aes"
 	"crypto/cipher"
-	"encoding/hex"
 	"fmt"
 	"io/ioutil"
 	"os"
+
+	"gopkg.in/ini.v1"
 )
 
 func main() {
-	if len(os.Args) < 3 {
-		fmt.Println("Usage: program input_file output_file")
+	if len(os.Args) < 4 {
+		fmt.Println("Usage: program input_file output_file key_file")
 		return
 	}
 
 	inputFilePath := os.Args[1]
 	outputFilePath := os.Args[2]
+	keyFilePath := os.Args[3]
 
-	key := []byte("AES256Key-32Characters1234567890")
-	nonce, _ := hex.DecodeString("bb8ef84243d2ee95a41c6c57")
+	// Read key from the INI file
+	cfg, err := ini.Load(keyFilePath)
+	if err != nil {
+		fmt.Println("Error reading key file:", err)
+		return
+	}
+
+	// Get the key value from the INI file
+	key := []byte(cfg.Section("").Key("key").String())
+
+	// nonce, _ := hex.DecodeString("bb8ef84243d2ee95a41c6c57")
+	nonce := []byte{}
 
 	// Read ciphertext from the input file
 	ciphertext, err := ioutil.ReadFile(inputFilePath)
